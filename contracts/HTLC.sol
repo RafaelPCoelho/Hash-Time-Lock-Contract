@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0; 
 
-import '../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import '../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol';
 
 contract HTLC {
   uint public startTime;
@@ -11,13 +11,13 @@ contract HTLC {
   address public recipient;
   address public owner; 
   uint public amount; 
-  IERC20 public token;
+  IERC721 public token;
 
   constructor(address _recipient, address _token, uint _amount) { 
     recipient = _recipient;
     owner = msg.sender; 
     amount = _amount;
-    token = IERC20(_token);
+    token = IERC721(_token);
   } 
 
   function fund() external {
@@ -28,11 +28,11 @@ contract HTLC {
   function withdraw(string memory _secret) external { 
     require(keccak256(abi.encodePacked(_secret)) == hash, 'wrong secret');
     secret = _secret; 
-    token.transfer(recipient, amount); 
+    token.transferFrom(owner, owner, amount); 
   } 
 
   function refund() external { 
     require(block.timestamp > startTime + lockTime, 'too early');
-    token.transfer(owner, amount); 
+    token.transferFrom(owner, owner, amount); 
   } 
 }
