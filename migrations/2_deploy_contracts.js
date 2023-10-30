@@ -1,3 +1,4 @@
+/*
 const Token = artifacts.require('Token.sol');
 const HTLC = artifacts.require('HTLC.sol');
 
@@ -21,3 +22,14 @@ module.exports = async function (deployer, network, addresses) {
     await htlc.fund({from: alice});
   }
 };
+*/
+
+const HashedTimelock = artifacts.require('./HashedTimelock.sol')
+const HashedTimelockERC20 = artifacts.require('./HashedTimelockERC20.sol')
+const HashedTimelockERC721 = artifacts.require('./HashedTimelockERC721.sol')
+
+module.exports = function(deployer) {
+  deployer.deploy(HashedTimelock)
+  deployer.deploy(HashedTimelockERC20)
+  deployer.deploy(HashedTimelockERC721)
+}
