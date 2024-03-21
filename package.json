@@ -1,9 +1,18 @@
 {
   "dependencies": {
     "@openzeppelin/contracts": "^4.9.3",
-    "@truffle/hdwallet-provider": "^1.7.0"
+    "@truffle/contract": "^4.6.31",
+    "@truffle/hdwallet-provider": "^1.7.0",
+    "chai": "^5.0.0",
+    "hardhat": "^2.19.4",
+    "truffle": "^5.11.5",
+    "web3": "^1.10.4"
   },
   "devDependencies": {
     "solc": "^0.8.19"
-  }
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "type": "commonjs"
 }

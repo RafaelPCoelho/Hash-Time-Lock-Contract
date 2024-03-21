@@ -1,35 +1,42 @@
-/*
 const Token = artifacts.require('Token.sol');
 const HTLC = artifacts.require('HTLC.sol');
 
-module.exports = async function (deployer, network, addresses) {
-  const [bob, alice] = addresses;      
+async function deployTokenAndHTLC(deployer, fromAccount, tokenName, tokenSymbol) {
+  await deployer.deploy(Token, tokenName, tokenSymbol, { from: fromAccount });
+  const token = await Token.deployed();
 
-  if(network === 'segundoGanache') {
-    await deployer.deploy(Token, 'Token A', 'TKNA', {from:  bob});
-    const tokenA = await Token.deployed();
-    await deployer.deploy(HTLC, alice, tokenA.address, 1, {from: bob});
-    const htlc = await HTLC.deployed();
-    await tokenA.approve(htlc.address, 1, {from: bob});
-    await htlc.fund({from: bob});
+  console.time(`Tempo de deploy do Token (${tokenName})`);
+  await deployer.deploy(HTLC, fromAccount, token.address, 1, { from: fromAccount });
+  console.timeEnd(`Tempo de deploy do Token (${tokenName})`);
+
+  const htlc = await HTLC.deployed();
+  await token.approve(htlc.address, 1, { from: fromAccount });
+
+  try {
+    console.time(`Tempo de execução do fund (${tokenName})`);
+    await htlc.fund({ from: fromAccount });
+    console.timeEnd(`Tempo de execução do fund (${tokenName})`);
+  } catch (error) {
+    console.error(`Erro ao executar a transação de fundo (${tokenName}):`, error);
   }
-  if(network === 'ganache') {
-    await deployer.deploy(Token, 'Token B', 'TKNB', {from: alice});
-    const tokenB = await Token.deployed();
-    await deployer.deploy(HTLC, bob, tokenB.address, 1, {from: alice});
-    const htlc = await HTLC.deployed();
-    await tokenB.approve(htlc.address, 1, {from: alice});
-    await htlc.fund({from: alice});
-  }
-};
-*/
-
-const HashedTimelock = artifacts.require('./HashedTimelock.sol')
-const HashedTimelockERC20 = artifacts.require('./HashedTimelockERC20.sol')
-const HashedTimelockERC721 = artifacts.require('./HashedTimelockERC721.sol')
-
-module.exports = function(deployer) {
-  deployer.deploy(HashedTimelock)
-  deployer.deploy(HashedTimelockERC20)
-  deployer.deploy(HashedTimelockERC721)
 }
+
+module.exports = async function (deployer, network, addresses) {
+  console.time('Tempo total de implantação');
+
+  const [bob, alice] = addresses;
+
+  if (network === 'chocolate') {
+    for (let i = 0; i < 1; i++) {
+      await deployTokenAndHTLC(deployer, bob, `Token A ${i}`, `TKNA${i}`);
+    }
+  }
+
+  if (network === 'morango') {
+    for (let i = 0; i < 1; i++) {
+      await deployTokenAndHTLC(deployer, alice, `Token B ${i}`, `TKNB${i}`);
+    }
+  }
+
+  console.timeEnd('Tempo total de implantação');
+};
