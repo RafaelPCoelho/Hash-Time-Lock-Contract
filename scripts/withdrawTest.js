@@ -42,7 +42,12 @@ async function main() {
 
         // Estima o custo de gas da função withdraw na rede Sepolia
         const sepoliaWithdrawGasEstimate = await sepoliaHtlc.withdraw.estimateGas('abracadabra', {from: sepoliaAddresses[0]});
+        const sepoliaGasPrice = await sepoliaWeb3.eth.getGasPrice();
+        const sepoliaCostInWei = sepoliaWithdrawGasEstimate * sepoliaGasPrice;
+        const sepoliaCostInEth = sepoliaWeb3.utils.fromWei(sepoliaCostInWei.toString(), 'ether');
         console.log(`Estimativa de Gas para retirada na rede Sepolia: ${sepoliaWithdrawGasEstimate}`);
+        console.log(`Custo estimado na rede Sepolia: ${sepoliaCostInEth} ETH`);
+
 
         await sepoliaHtlc.withdraw('abracadabra', {from: sepoliaAddresses[0]});
 
@@ -57,7 +62,11 @@ async function main() {
 
         // Estima o custo de gas da função withdraw na rede Mumbai
         const mumbaiWithdrawGasEstimate = await mumbaiHtlc.withdraw.estimateGas('abracadabra', {from: mumbaiAddresses[1]});
+        const mumbaiGasPrice = await mumbaiWeb3.eth.getGasPrice();
+        const mumbaiCostInWei = mumbaiWithdrawGasEstimate * mumbaiGasPrice;
+        const mumbaiCostInEth = mumbaiWeb3.utils.fromWei(mumbaiCostInWei.toString(), 'ether');
         console.log(`Estimativa de Gas para retirada na rede Mumbai: ${mumbaiWithdrawGasEstimate}`);
+        console.log(`Custo estimado na rede Mumbai: ${mumbaiCostInEth} ETH`);
 
         await mumbaiHtlc.withdraw('abracadabra', {from: mumbaiAddresses[1]});
 
