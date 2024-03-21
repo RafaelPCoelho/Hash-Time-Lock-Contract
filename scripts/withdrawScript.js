@@ -2,8 +2,8 @@ const Web3 = require('web3');
 const { abi: htlcAbi } = require('./build/contracts/HTLC.json'); // Certifique-se de ajustar o caminho correto
 const { abi: tokenAbi } = require('./build/contracts/Token.json'); // Certifique-se de ajustar o caminho correto
 
-const web3Network1 = new Web3('HTTP://127.0.0.1:7545'); // Substitua pela URL da sua primeira rede
-const web3Network2 = new Web3('HTTP://127.0.0.1:7555'); // Substitua pela URL da sua segunda rede
+const web3Network1 = new Web3('https://rpc.sepolia.dev'); // Substitua pela URL da sua primeira rede
+const web3Network2 = new Web3('https://rpc-mumbai.maticvigil.com'); // Substitua pela URL da sua segunda rede
 
 const addresses = await web3Network1.eth.getAccounts();
 

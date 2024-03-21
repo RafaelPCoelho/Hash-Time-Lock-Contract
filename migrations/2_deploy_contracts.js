@@ -26,13 +26,13 @@ module.exports = async function (deployer, network, addresses) {
 
   const [bob, alice] = addresses;
 
-  if (network === 'segundoGanache') {
+  if (network === 'sepolia') {
     for (let i = 0; i < 1; i++) {
       await deployTokenAndHTLC(deployer, bob, `Token A ${i}`, `TKNA${i}`);
     }
   }
 
-  if (network === 'ganache') {
+  if (network === 'mumbai') {
     for (let i = 0; i < 1; i++) {
       await deployTokenAndHTLC(deployer, alice, `Token B ${i}`, `TKNB${i}`);
     }
