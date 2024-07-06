@@ -1,7 +1,22 @@
-# Exemplo-HTLC
+# Hash Time Lock Contract
  Exemplo feito de Hash Time Lock Contract criado pelo Youtuber EatTheBlocks;
- 
  O tutorial completo e não modificado se encontra **[Aqui](https://www.youtube.com/watch?v=VZX2ApRLuwM&t)**.
+## Sobre o Projeto
+
+Esse projeto tem como objetivo realizar a interoperação de Tokens fungivéis ERC20 entre as redes teste Sepolia e Mumbai com base na implementação do mecanismo Hash Time Lock.
+
+## Conceitos:
+### Interoperabilidade
+A interoperabilidade é a capacidade de sistemas distintos de se comunicarem e interagirem entre si. A interoperabilidade é um conceito fundamental para a integração de sistemas, pois permite que diferentes sistemas possam trocar informações e compartilhar recursos.
+
+### Tokens Fungíveis (ERC20)
+Os tokens fungíveis são tokens que podem ser trocados entre si de forma equivalente, ou seja, um token fungível é igual a outro token fungível. Os tokens fungíveis são representados por contratos inteligentes que seguem o padrão ERC20, que define uma interface padrão para a criação de tokens na blockchain Ethereum. Os tokens fungíveis são amplamente utilizados em aplicações financeiras, como pagamentos, empréstimos e investimentos.
+
+### Mecanismo Hash Time Lock
+O mecanismo hash time lock (htlc) funciona exigindo que um pagamento seja validado com um hash criptográfico dentro de um tempo específico, garantindo que a transação ocorra apenas se ambas as partes cumprirem suas obrigações em um período determinado.
+
+## Funcionamento
+Para o funcionamento, por meio off-chain, ambas as partes da troca conversam entre si para obter o endereço da carteira destino e origem, uma das partes cria uma palavra chave para desbloquear a troca quando já estiver montada. Em cada uma das redes que será usado o mecanismo, é implementado um contrato com o edendereço da carteira destino, a quantidade de token e a palavra chave com a proteção do hash. Os dois contratos vão bloquear os ativos de ambas as redes por um tempo limitado estipulado no contrato, caso ultrapasse o tempo definido, temos a devolução dos tokens para suas carteiras de origem. A transação só é completa quando ambas as partes colocam a palavra secreta no contrato, fazendo os tokens se direcionar para a carteira de origem
 
  ## Pré-requisitos
  
