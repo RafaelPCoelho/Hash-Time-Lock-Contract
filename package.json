@@ -2,10 +2,12 @@
   "name": "hardhat-project",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^16.4.5",
     "hardhat": "^2.22.6"
   },
   "dependencies": {
     "eth-gas-reporter": "^0.2.27",
+    "ethers": "^5.0.0",
     "glob": "^11.0.0"
   }
 }
