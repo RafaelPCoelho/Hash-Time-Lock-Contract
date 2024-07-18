@@ -1,13 +1,18 @@
 {
   "name": "hardhat-project",
+  "version": "1.0.0",
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "chai": "^4.4.1",
     "dotenv": "^16.4.5",
     "hardhat": "^2.22.6"
   },
   "dependencies": {
-    "eth-gas-reporter": "^0.2.27",
-    "ethers": "^5.0.0",
-    "glob": "^11.0.0"
+    "@openzeppelin/contracts": "^5.0.2",
+    "eth-gas-reporter": "^0.2.25",
+    "ethers": "^6.1.0",
+    "glob": "^9.0.0",
+    "mocha": "^10.6.0",
+    "web3": "^4.11.0"
   }
 }
