@@ -15,8 +15,10 @@ async function main() {
   const walletSepolia = wallet.connect(sepoliaProvider);
   const walletSepolia2 = wallet2.connect(sepoliaProvider);
   // Check balance on Sepoliaethers.provider.getBalance(walletSepolia);
+  
   const balanceSepolia = await sepoliaProvider.provider.getBalance(walletSepolia);
   const balanceSepolia2 = await sepoliaProvider.provider.getBalance(walletSepolia2);
+  console.log(`Só verificando uma coisa: ${walletSepolia.address}`)
   console.log(`Sepolia wallet1 balance: ${ethers.formatEther(balanceSepolia)} ETH`);
   console.log(`Sepolia wallet2 balance: ${ethers.formatEther(balanceSepolia2)} ETH`);
 

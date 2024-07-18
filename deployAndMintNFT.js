@@ -2,26 +2,23 @@ require('dotenv').config();
 const { ethers } = require('hardhat');
 
 async function main() {
-    const [deployer] = await ethers.getSigners();
-    console.log('Deploying contracts with the account:', deployer.address);
-
     // Implantar contrato em Sepolia
-    const sepoliaProvider = new ethers.AlchemyProvider("sepolia",process.env.ALCHEMY_API_KEY);
+    const sepoliaProvider = new ethers.JsonRpcProvider(`https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`);
     const sepoliaWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, sepoliaProvider);
+    console.log(`Fazendo o deploy do contrato na conta: ${sepoliaWallet.address}`)
 
     const TokenSepolia = await ethers.getContractFactory('MyToken', sepoliaWallet);
     const tokenSepolia = await TokenSepolia.deploy(sepoliaWallet.address);
-    await tokenSepolia.deployed();
-    console.log('Contract deployed on Sepolia at:', tokenSepolia.address);
+    console.log('Contract deployed on Sepolia at:', await tokenSepolia.getAddress());
 
     // Implantar contrato em Arbitrum Sepolia
-    const arbitrumProvider = new ethers.providers.JsonRpcProvider(`https://arb-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`);
+    const arbitrumProvider = new ethers.JsonRpcProvider(`https://arb-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`);
     const arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, arbitrumProvider);
+    console.log(`Fazendo o deploy do contrato na conta: ${arbitrumWallet.address}`)
 
     const TokenArbitrum = await ethers.getContractFactory('MyToken', arbitrumWallet);
     const tokenArbitrum = await TokenArbitrum.deploy(arbitrumWallet.address);
-    await tokenArbitrum.deployed();
-    console.log('Contract deployed on Arbitrum Sepolia at:', tokenArbitrum.address);
+    console.log('Contract deployed on Arbitrum Sepolia at:', await tokenArbitrum.getAddress());
 
     // Mintar NFT em Sepolia
     const tokenUri = 'https://example.com/nft';
