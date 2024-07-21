@@ -104,4 +104,9 @@ balance.toString()
 ```
 Caso tudo funcione vai ter um Token na balance!
 
+## Exemplos de contratos no scan:
+
+**[Eth-Sepolia](https://sepolia.etherscan.io/address/0x285973822fc552d717051ae85c11b94ecf99e9f1)**
+**[Polygon-Mumbai](https://mumbai.polygonscan.com/address/0x3b9984f6efc6f92cd4181558342fb2987ce987a4)**
+
 Rafael Coelho
