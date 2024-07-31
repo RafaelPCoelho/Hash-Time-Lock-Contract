@@ -6,7 +6,6 @@ const { ethers } = require("hardhat");
 
 
 describe("NFT Deploy and Mint", function () {
-    let TokenSepolia, TokenArbitrum;
     let sepoliaWallet, arbitrumWallet;
     let tokenSepolia, tokenArbitrum;
 
@@ -18,7 +17,7 @@ describe("NFT Deploy and Mint", function () {
         console.log(`Fazendo o deploy do contrato na conta: ${sepoliaWallet.address}`)
 
         // Set up the provider for Arbitrum Sepolia
-        const arbitrumProvider = new ethers.JsonRpcProvider(`HTTP://127.0.0.1:7555`);
+        const arbitrumProvider = new ethers.JsonRpcProvider(`HTTP://127.0.0.1:7545`);
         //const arbitrumProvider = new ethers.JsonRpcProvider(`https://arb-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`);
         arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, arbitrumProvider);
 
@@ -47,7 +46,7 @@ describe("NFT Deploy and Mint", function () {
 
           await new Promise(resolve => setTimeout(resolve, 1000)); // 10 segundos de espera para redes publicas
 
-          console.log(`Minted NFT on Sepolia: Contract ${tokenSepolia.address}, Token ID ${tokenIdSepolia}`);
+          console.log(`Minted NFT on Sepolia: Contract ${await tokenSepolia.getAddress()}, Token ID ${tokenIdSepolia} WALLET: ${sepoliaWallet.address}`);
 
           // Check the owner of the minted NFT
           const owner = await tokenSepolia.ownerOf(tokenIdSepolia);
@@ -63,7 +62,7 @@ describe("NFT Deploy and Mint", function () {
       try {
           const txMintArbitrum = await tokenArbitrum.safeMint(arbitrumWallet.address, tokenIdArbitrum);
           await txMintArbitrum.wait();
-          console.log(`Minted NFT on Arbitrum Sepolia: Contract ${tokenArbitrum.address}, Token ID ${tokenIdArbitrum}`);
+          console.log(`Minted NFT on Arbitrum Sepolia: Contract ${await tokenArbitrum.getAddress()}, Token ID ${tokenIdArbitrum} WALLET: ${arbitrumWallet.address}`);
 
           // Check the owner of the minted NFT
           const owner = await tokenArbitrum.ownerOf(tokenIdArbitrum);
