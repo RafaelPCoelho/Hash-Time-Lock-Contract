@@ -92,6 +92,9 @@ async function main() {
     await tokenSepolia.connect(sepoliaWallet).setApprovalForAll(htlcSepolia.getAddress(), true);
     await tokenArbitrum.connect(arbitrumWallet).setApprovalForAll(htlcArbitrum.getAddress(), true);
 
+    await checkNFTBalance(tokenSepolia, sepoliaWallet);
+    await checkNFTBalance(tokenArbitrum, arbitrumWallet);
+
     // Fund HTLC contracts
     await htlcSepolia.connect(sepoliaWallet).fund();
     console.log('NFT funded to HTLC on Sepolia');
@@ -109,11 +112,12 @@ async function main() {
     // Withdraw NFT from HTLC on Sepolia
     try {
         console.log('Attempting to withdraw NFT from HTLC on Sepolia');
+        arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, sepoliaProvider);
         const txWithdrawSepolia = await htlcSepolia.connect(arbitrumWallet).withdraw(secret);
         await txWithdrawSepolia.wait();
         console.log('NFT withdrawn from HTLC on Sepolia');
 
-        await checkNFTBalance(tokenSepolia, sepoliaWallet);
+        await checkNFTBalance(tokenSepolia, arbitrumWallet);
     } catch (error) {
         console.error('Failed to withdraw NFT from HTLC on Sepolia:', error);
     }
@@ -121,11 +125,12 @@ async function main() {
     // Withdraw NFT from HTLC on Arbitrum
     try {
         console.log('Attempting to withdraw NFT from HTLC on Arbitrum');
+        sepoliaWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, arbitrumProvider);
         const txWithdrawArbitrum = await htlcArbitrum.connect(sepoliaWallet).withdraw(secret);
         await txWithdrawArbitrum.wait();
         console.log('NFT withdrawn from HTLC on Arbitrum');
 
-        await checkNFTBalance(tokenArbitrum, arbitrumWallet);
+        await checkNFTBalance(tokenArbitrum, sepoliaWallet);
     } catch (error) {
         console.error('Failed to withdraw NFT from HTLC on Arbitrum:', error);
     }
