@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 contract HTLC is ERC721Holder {
     uint public startTime;
-    uint public lockTime = 10000 seconds;
+    uint public lockTime = 4 seconds;
     string public secret; //abracadabra
     bytes32 public hash = 0xfd69353b27210d2567bc0ade61674bbc3fc01a558a61c2a0cb2b13d96f9387cd;
     address public recipient;
@@ -35,6 +35,12 @@ contract HTLC is ERC721Holder {
     }
 
     function withdraw(string memory _secret) external {
+        if (block.timestamp > startTime + lockTime && keccak256(abi.encodePacked(_secret)) != hash) {
+            // If the time has expired and the secret is incorrect, refund automatically
+            refund();
+            return;
+        }
+
         require(keccak256(abi.encodePacked(_secret)) == hash, 'HTLC721: Wrong secret');
         require(msg.sender == recipient, 'HTLC721: Only recipient can withdraw');
         secret = _secret;
@@ -42,11 +48,12 @@ contract HTLC is ERC721Holder {
         emit Withdrawn(recipient, tokenId);
     }
 
-    function refund() external {
+    function refund() public {
         require(block.timestamp > startTime + lockTime, 'HTLC721: Too early');
         require(msg.sender == owner, 'HTLC721: Only owner can refund');
         token.safeTransferFrom(address(this), owner, tokenId);
         emit Refunded(owner, tokenId);
     }
 
+    function transferToken(string ) external {}
 }

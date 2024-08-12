@@ -29,7 +29,7 @@ async function main() {
 
   console.log(`Sepolia wallet1 balance: ${ethers.formatEther(balanceSepolia)} ETH`);
   console.log(`Sepolia wallet2 balance: ${ethers.formatEther(balanceSepolia2)} ETH`);
-  //console.log(`Sepolia deposit wallet balance: ${ethers.formatEther(balanceSepolia3)} ETH`);
+  console.log(`Sepolia deposit wallet balance: ${ethers.formatEther(balanceSepolia3)} ETH`);
 
   // ARBITRUM
 
@@ -45,11 +45,11 @@ async function main() {
 
   console.log(`Arbitrum wallet1 balance: ${ethers.formatEther(balanceArbitrum)} ETH`);
   console.log(`Arbitrum wallet2 balance: ${ethers.formatEther(balanceArbitrum2)} ETH`);
-  //console.log(`Arbitrum deposit wallet balance: ${ethers.formatEther(balanceArbitrum3)} ETH`);
+  console.log(`Arbitrum deposit wallet balance: ${ethers.formatEther(balanceArbitrum3)} ETH`);
 
   /// DESCOMENTE PARA COLOCAR ETH NAS CARTEIRAS VIA GANACHE
-
-/*   const value = ethers.parseEther("10");
+/* 
+  const value = ethers.parseEther("40");
 
   // Função para enviar ETH
   async function sendEther(wallet, to, value) {

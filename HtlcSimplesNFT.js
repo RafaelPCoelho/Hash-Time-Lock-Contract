@@ -108,7 +108,7 @@ async function main() {
     // Perform the withdrawal (swap) using the correct secret
     await new Promise(resolve => setTimeout(resolve, 2000)); // 10 segundos de espera para redes publicas
     const secret = 'abracadabra';
-
+    
     // Withdraw NFT from HTLC on Sepolia
     try {
         console.log('Attempting to withdraw NFT from HTLC on Sepolia');
