@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 contract HTLC is ERC721Holder {
     uint public startTime;
-    uint public lockTime = 1 seconds;
+    uint public lockTime = 20 seconds;
     string public secret; //abracadabra
     bytes32 public hash = 0xfd69353b27210d2567bc0ade61674bbc3fc01a558a61c2a0cb2b13d96f9387cd;
     address public recipient;  
