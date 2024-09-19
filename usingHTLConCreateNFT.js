@@ -5,6 +5,7 @@ async function main() {
     let sepoliaWallet, arbitrumWallet;
     let tokenSepolia, tokenArbitrum;
     let htlcSepolia, htlcArbitrum;
+    let flip;
 
     async function checkNFTBalance(contract, wallet) { 
 
@@ -32,7 +33,7 @@ async function main() {
 
             await checkNFTBalance(tokenContract, wallet); // Verifica o saldo após a interação com o HTLC
         } catch (error) {
-            console.error(`Failed to interact with HTLC contract:, error`);
+            console.error(`Failed to interact with HTLC contract:, ${error}`);
         }
     }
 
@@ -46,9 +47,26 @@ async function main() {
 
     // Load deployed token contracts
     const Token = await ethers.getContractFactory('TesteHTLC');
-    tokenSepolia = Token.attach("0x79de58754ADbbaDED4e33FA6f2506B52201778d4");  // Replace with actual address
-    tokenArbitrum = Token.attach("0xa9886b53911c9cd6b30De390050136e88BE91b6E"); // Replace with actual address
+    tokenSepolia = Token.attach("0xb786Ca0E6B5464E652659538Fb53fa826712e66A");  
+    tokenArbitrum = Token.attach("0xe5dB4ede31Ba3B02337ef403A7119C262A917b59"); 
 
+    // Verifica os owners
+    const ownerTokenSepolia = await tokenSepolia.connect(sepoliaWallet).ownerOf(0);
+    const ownerTokenArbitrum = await tokenArbitrum.connect(arbitrumWallet).ownerOf(1);
+
+    if (ownerTokenSepolia == sepoliaWallet.address && ownerTokenArbitrum == arbitrumWallet.address){
+        flip = 0;
+    }
+    else if (ownerTokenSepolia == arbitrumWallet.address && ownerTokenArbitrum == sepoliaWallet.address){
+        flip = 1;
+    }
+    else {
+        console.log("ERRO NO FLIP, NÃO EXISTE OWNER NAS CARTEIRAS")
+    }
+
+    console.log(`O flip atual é: ${flip}`)
+    console.log(`Dono da Token Sepolia: ${ownerTokenSepolia}`);
+    console.log(`Dono da Token Arbitrum: ${ownerTokenArbitrum}`);
 
     // Deploy HTLC contracts
     const HTLC = await ethers.getContractFactory('HTLC');
@@ -58,6 +76,8 @@ async function main() {
     console.log('HTLC deployed on Sepolia at:', await htlcSepolia.getAddress());
     console.log('HTLC deployed on Arbitrum at:', await htlcArbitrum.getAddress());
 
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
     // Approve HTLC contracts
     await tokenSepolia.connect(sepoliaWallet).setApprovalForAll(htlcSepolia.getAddress(), true);
     await tokenArbitrum.connect(arbitrumWallet).setApprovalForAll(htlcArbitrum.getAddress(), true);
@@ -65,12 +85,15 @@ async function main() {
     await checkNFTBalance(tokenSepolia, sepoliaWallet);
     await checkNFTBalance(tokenArbitrum, arbitrumWallet);
 
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
     // Fund HTLC contracts
     await htlcSepolia.connect(sepoliaWallet).fund();
     await htlcArbitrum.connect(arbitrumWallet).fund();
 
     console.log('NFTs funded to HTLC contracts.');
 
+    await new Promise(resolve => setTimeout(resolve, 5000));
     await checkNFTBalance(tokenSepolia, sepoliaWallet);
     await checkNFTBalance(tokenArbitrum, arbitrumWallet);
 
