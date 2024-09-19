@@ -6,18 +6,12 @@ async function main() {
     let tokenSepolia, tokenArbitrum;
     let htlcSepolia, htlcArbitrum;
 
-    const secret = 'abracadabra';
+    async function checkNFTBalance(contract, wallet) { 
 
-    async function checkNFTBalance(contract, wallet) {
-        try {
-            const balance = await contract.balanceOf(wallet.address);
-            console.log(`Wallet ${wallet.address} has ${balance.toString()} NFTs in contract ${await contract.getAddress()}`);
-            return balance;
-        } catch (error) {
-            console.error(`Error checking NFT balance for wallet ${wallet.address} in contract ${await contract.getAddress()}:`, error);
-            throw error;  // Re-throw to handle it at a higher level if necessary
-        }
-    }    
+        const balance = await contract.connect(wallet).balanceOf(wallet.address); 
+        console.log(`Wallet ${wallet.address} has ${balance.toString()} NFTs in contract ${await contract.getAddress()}`);
+        return balance;
+    }
 
     async function handleHTLCInteraction(htlcContract, wallet, secret, tokenContract) {
         try {
@@ -36,9 +30,9 @@ async function main() {
                 console.log(`NFT withdrawn successfully.`);
             }
 
-            await checkNFTBalance(tokenContract, wallet);
+            await checkNFTBalance(tokenContract, wallet); // Verifica o saldo após a interação com o HTLC
         } catch (error) {
-            console.error(`Failed to interact with HTLC contract:`, error);
+            console.error(`Failed to interact with HTLC contract:, error`);
         }
     }
 
@@ -50,43 +44,45 @@ async function main() {
     const arbitrumProvider = new ethers.JsonRpcProvider(`HTTP://127.0.0.1:7545`);
     arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, arbitrumProvider);
 
-    // Contract Factory
+    // Load deployed token contracts
     const Token = await ethers.getContractFactory('TesteHTLC');
+    tokenSepolia = Token.attach("0x79de58754ADbbaDED4e33FA6f2506B52201778d4");  // Replace with actual address
+    tokenArbitrum = Token.attach("0xa9886b53911c9cd6b30De390050136e88BE91b6E"); // Replace with actual address
 
-    // Load the deployed contracts using their addresses
-    const tokenSepoliaAddress = '0x0752E256bD2cA0ce6D883402783d443a64198dd9';
-    const tokenArbitrumAddress = '0x8f6e2E92d4a2193D936a00a9b4B3BDF19d7a8857';
 
-    tokenSepolia = Token.attach(tokenSepoliaAddress);
-    tokenArbitrum = Token.attach(tokenArbitrumAddress);
+    // Deploy HTLC contracts
+    const HTLC = await ethers.getContractFactory('HTLC');
+    htlcSepolia = await HTLC.connect(sepoliaWallet).deploy(arbitrumWallet.address, tokenSepolia.getAddress(), 0); // Use correct token ID
+    htlcArbitrum = await HTLC.connect(arbitrumWallet).deploy(sepoliaWallet.address, tokenArbitrum.getAddress(), 1); // Use correct token ID
 
-    while (true) {
-        // Deploy HTLC contracts
-        const HTLC = await ethers.getContractFactory('HTLC');
-        htlcSepolia = await HTLC.connect(sepoliaWallet).deploy(arbitrumWallet.address, tokenSepolia.getAddress(), 0);
-        htlcArbitrum = await HTLC.connect(arbitrumWallet).deploy(sepoliaWallet.address, tokenArbitrum.getAddress(), 1);
+    console.log('HTLC deployed on Sepolia at:', await htlcSepolia.getAddress());
+    console.log('HTLC deployed on Arbitrum at:', await htlcArbitrum.getAddress());
 
-        console.log('HTLC deployed on Sepolia at:', await htlcSepolia.getAddress());
-        console.log('HTLC deployed on Arbitrum at:', await htlcArbitrum.getAddress());
+    // Approve HTLC contracts
+    await tokenSepolia.connect(sepoliaWallet).setApprovalForAll(htlcSepolia.getAddress(), true);
+    await tokenArbitrum.connect(arbitrumWallet).setApprovalForAll(htlcArbitrum.getAddress(), true);
 
-        // Approve HTLC contracts
-        await tokenSepolia.connect(sepoliaWallet).setApprovalForAll(htlcSepolia.getAddress(), true);
-        await tokenArbitrum.connect(arbitrumWallet).setApprovalForAll(htlcArbitrum.getAddress(), true);
+    await checkNFTBalance(tokenSepolia, sepoliaWallet);
+    await checkNFTBalance(tokenArbitrum, arbitrumWallet);
 
-        // Fund HTLC contracts
-        await htlcSepolia.connect(sepoliaWallet).fund();
-        await htlcArbitrum.connect(arbitrumWallet).fund();
+    // Fund HTLC contracts
+    await htlcSepolia.connect(sepoliaWallet).fund();
+    await htlcArbitrum.connect(arbitrumWallet).fund();
 
-        console.log('NFTs funded to HTLC contracts.');
+    console.log('NFTs funded to HTLC contracts.');
 
-        // Handle HTLC on Sepolia
-        arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, sepoliaProvider);
-        await handleHTLCInteraction(htlcSepolia, arbitrumWallet, secret, tokenSepolia);
+    await checkNFTBalance(tokenSepolia, sepoliaWallet);
+    await checkNFTBalance(tokenArbitrum, arbitrumWallet);
 
-        // Handle HTLC on Arbitrum
-        sepoliaWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, arbitrumProvider);
-        await handleHTLCInteraction(htlcArbitrum, sepoliaWallet, secret, tokenArbitrum);
-    }
+    const secret = 'abracadabra';
+
+    // Handle HTLC on Sepolia
+    arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, sepoliaProvider);
+    await handleHTLCInteraction(htlcSepolia, arbitrumWallet, secret, tokenSepolia);
+
+    // Handle HTLC on Arbitrum
+    sepoliaWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, arbitrumProvider);
+    await handleHTLCInteraction(htlcArbitrum, sepoliaWallet, secret, tokenArbitrum);
 }
 
 main()
