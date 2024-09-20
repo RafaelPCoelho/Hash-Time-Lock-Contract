@@ -8,9 +8,15 @@ async function main() {
     let htlcamoy, htlcArbitrum;
     let flip;
 
+    const quebra = `\n`;
+
+    fs.appendFileSync('custosHTLC.txt', quebra, (err) => {
+        if (err) throw err;
+    });
+
     // Função para registrar os custos de gás no arquivo
-    function saveGasCosts(description, gasUsed) {
-        const data = `${description}: ${ethers.formatUnits(gasUsed, 'gwei')} gwei\n`;
+    function saveGasCosts(gasUsed, virgula) {
+        const data = `${ethers.formatUnits(gasUsed, 'gwei')}${virgula}`;
         fs.appendFileSync('custosHTLC.txt', data, (err) => {
             if (err) throw err;
         });
@@ -47,10 +53,10 @@ async function main() {
 
             // Salva o custo de gás no arquivo
             if (provider == amoyProvider){
-            saveGasCosts('Amoy Gas Fee (Withdraw)', gasUsed);
+            saveGasCosts(gasUsed,',');
             }
             else if (provider == arbitrumProvider){
-            saveGasCosts('Arbitrum Gas Fee (Withdraw)', gasUsed);
+            saveGasCosts(gasUsed,'');
             }
     
             await checkNFTBalance(tokenContract, wallet); // Verifica o saldo após a interação com o HTLC
@@ -114,8 +120,8 @@ async function main() {
     console.log(`amoy Gas Fee: ${ethers.formatUnits(amoyGasUsedDeploy, 'gwei')} gwei`);
     console.log(`Arbitrum Gas Fee: ${ethers.formatUnits(arbitrumGasUsedDeploy, 'gwei')} gwei`);
 
-    saveGasCosts('amoy Gas Fee (Deploy)', amoyGasUsedDeploy);
-    saveGasCosts('Arbitrum Gas Fee (Deploy)', arbitrumGasUsedDeploy);
+    saveGasCosts(amoyGasUsedDeploy,',');
+    saveGasCosts(arbitrumGasUsedDeploy,',');
 
     await new Promise(resolve => setTimeout(resolve, 5000));
 
@@ -148,8 +154,8 @@ async function main() {
     console.log(`Amoy Gas Fee ApprovalTransaction: ${ethers.formatUnits(amoyGasUsedApprovalForAll, 'gwei')} gwei`);
     console.log(`Arbitrum Gas Fee ApprovalTransaction: ${ethers.formatUnits(arbitrumGasUsedApprovalForAll, 'gwei')} gwei`);
 
-    saveGasCosts('Amoy Gas Fee (Approval)', amoyGasUsedApprovalForAll);
-    saveGasCosts('Arbitrum Gas Fee (Approval)', arbitrumGasUsedApprovalForAll);
+    saveGasCosts(amoyGasUsedApprovalForAll,',');
+    saveGasCosts(arbitrumGasUsedApprovalForAll,',');
 
     await new Promise(resolve => setTimeout(resolve, 5000));
 
@@ -175,8 +181,8 @@ async function main() {
     console.log(`Amoy Gas Fee FundTransaction: ${ethers.formatUnits(amoyGasUsedFund, 'gwei')} gwei`);
     console.log(`Arbitrum Gas Fee FundTransaction: ${ethers.formatUnits(arbitrumGasUsedFund, 'gwei')} gwei`);
 
-    saveGasCosts('Amoy Gas Fee (Fund)', amoyGasUsedFund);
-    saveGasCosts('Arbitrum Gas Fee (Fund)', arbitrumGasUsedFund);
+    saveGasCosts(amoyGasUsedFund,',');
+    saveGasCosts(arbitrumGasUsedFund,',');
 
     if (flip == 0){
         await checkNFTBalance(tokenamoy, amoyWallet);
