@@ -3,9 +3,9 @@ const { ethers } = require("hardhat");
 const fs = require('fs');
 
 async function main() {
-    let sepoliaWallet, arbitrumWallet;
-    let tokenSepolia, tokenArbitrum;
-    let htlcSepolia, htlcArbitrum;
+    let amoyWallet, arbitrumWallet;
+    let tokenamoy, tokenArbitrum;
+    let htlcamoy, htlcArbitrum;
     let flip;
 
     // Função para registrar os custos de gás no arquivo
@@ -22,7 +22,7 @@ async function main() {
         return balance;
     }
 
-    async function handleHTLCInteraction(htlcContract, wallet, secret, tokenContract) {
+    async function handleHTLCInteraction(htlcContract, wallet, secret, tokenContract, provider) {
         try {
             const startTime = await htlcContract.startTime();
             const lockTime = await htlcContract.lockTime();
@@ -46,7 +46,12 @@ async function main() {
             console.log(`Gas Fee: ${ethers.formatUnits(gasUsed, 'gwei')} gwei`);
 
             // Salva o custo de gás no arquivo
-            saveGasCosts('HTLC Interaction Gas Fee', gasUsed);
+            if (provider == amoyProvider){
+            saveGasCosts('Amoy Gas Fee (Withdraw)', gasUsed);
+            }
+            else if (provider == arbitrumProvider){
+            saveGasCosts('Arbitrum Gas Fee (Withdraw)', gasUsed);
+            }
     
             await checkNFTBalance(tokenContract, wallet); // Verifica o saldo após a interação com o HTLC
         } catch (error) {
@@ -54,26 +59,26 @@ async function main() {
         }
     }
 
-    const arbitrumProvider = new ethers.JsonRpcProvider(`HTTP://127.0.0.1:7545`);
-    const sepoliaProvider = new ethers.JsonRpcProvider(`HTTP://127.0.0.1:7555`);
+    const arbitrumProvider = new ethers.JsonRpcProvider(`https://arb-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`);
+    const amoyProvider = new ethers.JsonRpcProvider(`https://polygon-amoy.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`);
 
-    sepoliaWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, sepoliaProvider);
+    amoyWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, amoyProvider);
     arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, arbitrumProvider);
 
     const Token = await ethers.getContractFactory('TesteHTLC');
-    tokenSepolia = Token.attach("0x3E97f42C6b0266cD95FAf38238c9CE53AA9D55f4");  
-    tokenArbitrum = Token.attach("0xc743fA75Bf9519341816060a8685E68CA59e200F"); 
+    tokenamoy = Token.attach("0xdcA2d4CA80f5893051B2B78Aa92E4C9A7D687855");  
+    tokenArbitrum = Token.attach("0x63c203C3a56A3f37AB68598b4E57b79D513cE0A4"); 
 
-    const ownerTokenSepolia = await tokenSepolia.connect(sepoliaWallet).ownerOf(0);
+    const ownerTokenamoy = await tokenamoy.connect(amoyWallet).ownerOf(0);
     const ownerTokenArbitrum = await tokenArbitrum.connect(arbitrumWallet).ownerOf(1);
 
-    if (ownerTokenSepolia == sepoliaWallet.address && ownerTokenArbitrum == arbitrumWallet.address){
+    if (ownerTokenamoy == amoyWallet.address && ownerTokenArbitrum == arbitrumWallet.address){
         flip = 0;
     }
-    else if (ownerTokenSepolia == arbitrumWallet.address && ownerTokenArbitrum == sepoliaWallet.address){
+    else if (ownerTokenamoy == arbitrumWallet.address && ownerTokenArbitrum == amoyWallet.address){
         flip = 1;
-        sepoliaWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, arbitrumProvider);
-        arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, sepoliaProvider);
+        amoyWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, arbitrumProvider);
+        arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, amoyProvider);
     }
     else {
         console.log("ERRO NO FLIP, NÃO EXISTE OWNER NAS CARTEIRAS OU EM UMA")
@@ -82,104 +87,104 @@ async function main() {
 
     console.log(`O flip atual é: ${flip}`);
 
-    console.log(`Dono da Token Sepolia: ${ownerTokenSepolia}`);
+    console.log(`Dono da Token amoy: ${ownerTokenamoy}`);
     console.log(`Dono da Token Arbitrum: ${ownerTokenArbitrum}`);
     
     const HTLC = await ethers.getContractFactory('HTLC');
-    let sepoliaDeployed, arbitrumDeployed;
+    let amoyDeployed, arbitrumDeployed;
 
     if (flip == 0) {
-        htlcSepolia = await HTLC.connect(sepoliaWallet).deploy(arbitrumWallet.address, tokenSepolia.getAddress(), 0); 
-        sepoliaDeployed = await htlcSepolia.deploymentTransaction().wait(); 
-        htlcArbitrum = await HTLC.connect(arbitrumWallet).deploy(sepoliaWallet.address, tokenArbitrum.getAddress(), 1); 
+        htlcamoy = await HTLC.connect(amoyWallet).deploy(arbitrumWallet.address, tokenamoy.getAddress(), 0); 
+        amoyDeployed = await htlcamoy.deploymentTransaction().wait(); 
+        htlcArbitrum = await HTLC.connect(arbitrumWallet).deploy(amoyWallet.address, tokenArbitrum.getAddress(), 1); 
         arbitrumDeployed = await htlcArbitrum.deploymentTransaction().wait();
     } else if (flip == 1) {
-        htlcSepolia = await HTLC.connect(arbitrumWallet).deploy(sepoliaWallet.address, tokenSepolia.getAddress(), 0); 
-        sepoliaDeployed = await htlcSepolia.deploymentTransaction().wait();
-        htlcArbitrum = await HTLC.connect(sepoliaWallet).deploy(arbitrumWallet.address, tokenArbitrum.getAddress(), 1); 
+        htlcamoy = await HTLC.connect(arbitrumWallet).deploy(amoyWallet.address, tokenamoy.getAddress(), 0); 
+        amoyDeployed = await htlcamoy.deploymentTransaction().wait();
+        htlcArbitrum = await HTLC.connect(amoyWallet).deploy(arbitrumWallet.address, tokenArbitrum.getAddress(), 1); 
         arbitrumDeployed = await htlcArbitrum.deploymentTransaction().wait();
     }
 
-    console.log('HTLC deployed on Sepolia at:', await htlcSepolia.getAddress());
+    console.log('HTLC deployed on Amoy at:', await htlcamoy.getAddress());
     console.log('HTLC deployed on Arbitrum at:', await htlcArbitrum.getAddress());
 
-    let sepoliaGasUsedDeploy = sepoliaDeployed.gasUsed;
+    let amoyGasUsedDeploy = amoyDeployed.gasUsed;
     let arbitrumGasUsedDeploy = arbitrumDeployed.gasUsed;
 
-    console.log(`Sepolia Gas Fee: ${ethers.formatUnits(sepoliaGasUsedDeploy, 'gwei')} gwei`);
+    console.log(`amoy Gas Fee: ${ethers.formatUnits(amoyGasUsedDeploy, 'gwei')} gwei`);
     console.log(`Arbitrum Gas Fee: ${ethers.formatUnits(arbitrumGasUsedDeploy, 'gwei')} gwei`);
 
-    saveGasCosts('Sepolia Gas Fee (Deploy)', sepoliaGasUsedDeploy);
+    saveGasCosts('amoy Gas Fee (Deploy)', amoyGasUsedDeploy);
     saveGasCosts('Arbitrum Gas Fee (Deploy)', arbitrumGasUsedDeploy);
 
     await new Promise(resolve => setTimeout(resolve, 5000));
 
-    let sepoliaApprovalTransaction, arbitrumApprovalTransaction, sepoliaApprovalReceipt, arbitrumApprovalReceipt;
+    let amoyApprovalTransaction, arbitrumApprovalTransaction, amoyApprovalReceipt, arbitrumApprovalReceipt;
 
     if (flip == 0) {
-        sepoliaApprovalTransaction = await tokenSepolia.connect(sepoliaWallet).setApprovalForAll(await htlcSepolia.getAddress(), true);
-        sepoliaApprovalReceipt = await sepoliaApprovalTransaction.wait();
+        amoyApprovalTransaction = await tokenamoy.connect(amoyWallet).setApprovalForAll(await htlcamoy.getAddress(), true);
+        amoyApprovalReceipt = await amoyApprovalTransaction.wait();
         arbitrumApprovalTransaction = await tokenArbitrum.connect(arbitrumWallet).setApprovalForAll(await htlcArbitrum.getAddress(), true);
         arbitrumApprovalReceipt = await arbitrumApprovalTransaction.wait();
     } else if (flip == 1) {
-        sepoliaApprovalTransaction = await tokenSepolia.connect(arbitrumWallet).setApprovalForAll(await htlcSepolia.getAddress(), true);
-        sepoliaApprovalReceipt = await sepoliaApprovalTransaction.wait(); 
-        arbitrumApprovalTransaction = await tokenArbitrum.connect(sepoliaWallet).setApprovalForAll(await htlcArbitrum.getAddress(), true);
+        amoyApprovalTransaction = await tokenamoy.connect(arbitrumWallet).setApprovalForAll(await htlcamoy.getAddress(), true);
+        amoyApprovalReceipt = await amoyApprovalTransaction.wait(); 
+        arbitrumApprovalTransaction = await tokenArbitrum.connect(amoyWallet).setApprovalForAll(await htlcArbitrum.getAddress(), true);
         arbitrumApprovalReceipt = await arbitrumApprovalTransaction.wait();
     }
 
     if (flip == 0){
-        await checkNFTBalance(tokenSepolia, sepoliaWallet);
+        await checkNFTBalance(tokenamoy, amoyWallet);
         await checkNFTBalance(tokenArbitrum, arbitrumWallet);
         }
         else if(flip == 1){
-        await checkNFTBalance(tokenArbitrum, sepoliaWallet);
-        await checkNFTBalance(tokenSepolia, arbitrumWallet);
+        await checkNFTBalance(tokenArbitrum, amoyWallet);
+        await checkNFTBalance(tokenamoy, arbitrumWallet);
         }
 
-    const sepoliaGasUsedApprovalForAll = sepoliaApprovalReceipt.gasUsed;
+    const amoyGasUsedApprovalForAll = amoyApprovalReceipt.gasUsed;
     const arbitrumGasUsedApprovalForAll = arbitrumApprovalReceipt.gasUsed;
 
-    console.log(`Sepolia Gas Fee ApprovalTransaction: ${ethers.formatUnits(sepoliaGasUsedApprovalForAll, 'gwei')} gwei`);
+    console.log(`Amoy Gas Fee ApprovalTransaction: ${ethers.formatUnits(amoyGasUsedApprovalForAll, 'gwei')} gwei`);
     console.log(`Arbitrum Gas Fee ApprovalTransaction: ${ethers.formatUnits(arbitrumGasUsedApprovalForAll, 'gwei')} gwei`);
 
-    saveGasCosts('Sepolia Gas Fee (Approval)', sepoliaGasUsedApprovalForAll);
+    saveGasCosts('Amoy Gas Fee (Approval)', amoyGasUsedApprovalForAll);
     saveGasCosts('Arbitrum Gas Fee (Approval)', arbitrumGasUsedApprovalForAll);
 
     await new Promise(resolve => setTimeout(resolve, 5000));
 
-    let sepoliaFundTransaction, arbitrumFundTransaction, sepoliaFundReceipt, arbitrumFundReceipt;
+    let amoyFundTransaction, arbitrumFundTransaction, amoyFundReceipt, arbitrumFundReceipt;
 
     if (flip == 0) {
-        sepoliaFundTransaction = await htlcSepolia.connect(sepoliaWallet).fund();
-        sepoliaFundReceipt = await sepoliaFundTransaction.wait();
+        amoyFundTransaction = await htlcamoy.connect(amoyWallet).fund();
+        amoyFundReceipt = await amoyFundTransaction.wait();
         arbitrumFundTransaction = await htlcArbitrum.connect(arbitrumWallet).fund();
         arbitrumFundReceipt = await arbitrumFundTransaction.wait();
     } else if (flip == 1) {
-        sepoliaFundTransaction = await htlcSepolia.connect(arbitrumWallet).fund();
-        sepoliaFundReceipt = await sepoliaFundTransaction.wait();
-        arbitrumFundTransaction = await htlcArbitrum.connect(sepoliaWallet).fund();
+        amoyFundTransaction = await htlcamoy.connect(arbitrumWallet).fund();
+        amoyFundReceipt = await amoyFundTransaction.wait();
+        arbitrumFundTransaction = await htlcArbitrum.connect(amoyWallet).fund();
         arbitrumFundReceipt = await arbitrumFundTransaction.wait();
     }
 
     console.log('NFTs funded to HTLC contracts.');
 
-    const sepoliaGasUsedFund = sepoliaFundReceipt.gasUsed;
+    const amoyGasUsedFund = amoyFundReceipt.gasUsed;
     const arbitrumGasUsedFund = arbitrumFundReceipt.gasUsed;
 
-    console.log(`Sepolia Gas Fee FundTransaction: ${ethers.formatUnits(sepoliaGasUsedFund, 'gwei')} gwei`);
+    console.log(`Amoy Gas Fee FundTransaction: ${ethers.formatUnits(amoyGasUsedFund, 'gwei')} gwei`);
     console.log(`Arbitrum Gas Fee FundTransaction: ${ethers.formatUnits(arbitrumGasUsedFund, 'gwei')} gwei`);
 
-    saveGasCosts('Sepolia Gas Fee (Fund)', sepoliaGasUsedFund);
+    saveGasCosts('Amoy Gas Fee (Fund)', amoyGasUsedFund);
     saveGasCosts('Arbitrum Gas Fee (Fund)', arbitrumGasUsedFund);
 
     if (flip == 0){
-        await checkNFTBalance(tokenSepolia, sepoliaWallet);
+        await checkNFTBalance(tokenamoy, amoyWallet);
         await checkNFTBalance(tokenArbitrum, arbitrumWallet);
         }
         else if(flip == 1){
-        await checkNFTBalance(tokenArbitrum, sepoliaWallet);
-        await checkNFTBalance(tokenSepolia, arbitrumWallet);
+        await checkNFTBalance(tokenArbitrum, amoyWallet);
+        await checkNFTBalance(tokenamoy, arbitrumWallet);
     }
 
     await new Promise(resolve => setTimeout(resolve, 5000));
@@ -187,18 +192,22 @@ async function main() {
     const secret = 'abracadabra';
 
     if (flip == 0){
-        arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, sepoliaProvider);
-        await handleHTLCInteraction(htlcSepolia, arbitrumWallet, secret, tokenSepolia);
+        arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, amoyProvider);
+        await handleHTLCInteraction(htlcamoy, arbitrumWallet, secret, tokenamoy, amoyProvider);
 
-        sepoliaWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, arbitrumProvider);
-        await handleHTLCInteraction(htlcArbitrum, sepoliaWallet, secret, tokenArbitrum);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        amoyWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, arbitrumProvider);
+        await handleHTLCInteraction(htlcArbitrum, amoyWallet, secret, tokenArbitrum, arbitrumProvider);
     }
-    else if(flip ==1){
-        sepoliaWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, sepoliaProvider);
-        await handleHTLCInteraction(htlcSepolia, sepoliaWallet, secret, tokenSepolia);
+    else if(flip == 1){
+        amoyWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, amoyProvider);
+        await handleHTLCInteraction(htlcamoy, amoyWallet, secret, tokenamoy, amoyProvider);
+
+        await new Promise(resolve => setTimeout(resolve, 5000));
 
         arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, arbitrumProvider);
-        await handleHTLCInteraction(htlcArbitrum, arbitrumWallet, secret, tokenArbitrum);
+        await handleHTLCInteraction(htlcArbitrum, arbitrumWallet, secret, tokenArbitrum, arbitrumProvider);
     }
 }
 
