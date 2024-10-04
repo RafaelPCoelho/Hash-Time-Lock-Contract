@@ -8,6 +8,9 @@ async function main() {
     let htlcamoy, htlcArbitrum;
     let flip;
 
+    let amoyStartTime, amoyEndTime, amoyTime;
+    let arbitrumStartTime, arbitrumEndTime, arbitrumTime;
+
     const quebra = `\n`;
 
     fs.appendFileSync('custosHTLC.txt', quebra, (err) => {
@@ -16,7 +19,7 @@ async function main() {
 
     // Função para registrar os custos de gás no arquivo
     function saveGasCosts(gasUsed, virgula) {
-        const data = `${ethers.formatUnits(gasUsed, 'gwei')}${virgula}`;
+        const data = `${ethers.formatUnits(gasUsed, 'wei')}${virgula}`;
         fs.appendFileSync('custosHTLC.txt', data, (err) => {
             if (err) throw err;
         });
@@ -47,16 +50,19 @@ async function main() {
             }
     
             const gasUsed = txReceipt.gasUsed;
-            console.log(`Gas Fee: ${ethers.formatUnits(gasUsed, 'gwei')} gwei`);
+            const gasPrice = txReceipt.gasPrice;
 
-            console.log(`Gas Fee: ${ethers.formatUnits(gasUsed, 'gwei')} gwei`);
+            console.log(`Gas Fee: ${ethers.formatUnits(gasUsed, 'wei')} wei`);
+            console.log(`Gas Price: ${ethers.formatUnits(gasPrice, 'wei')} wei`);
 
             // Salva o custo de gás no arquivo
             if (provider == amoyProvider){
             saveGasCosts(gasUsed,',');
+            saveGasCosts(gasPrice,',');
             }
             else if (provider == arbitrumProvider){
-            saveGasCosts(gasUsed,'');
+            saveGasCosts(gasUsed,',');
+            saveGasCosts(gasPrice,',');
             }
     
             await checkNFTBalance(tokenContract, wallet); // Verifica o saldo após a interação com o HTLC
@@ -100,43 +106,76 @@ async function main() {
     let amoyDeployed, arbitrumDeployed;
 
     if (flip == 0) {
+        amoyStartTime = Date.now();
         htlcamoy = await HTLC.connect(amoyWallet).deploy(arbitrumWallet.address, tokenamoy.getAddress(), 0); 
         amoyDeployed = await htlcamoy.deploymentTransaction().wait(); 
+        amoyEndTime = Date.now();
+        arbitrumStartTime = Date.now();
         htlcArbitrum = await HTLC.connect(arbitrumWallet).deploy(amoyWallet.address, tokenArbitrum.getAddress(), 1); 
         arbitrumDeployed = await htlcArbitrum.deploymentTransaction().wait();
+        arbitrumEndTime = Date.now();
     } else if (flip == 1) {
+        amoyStartTime = Date.now();
         htlcamoy = await HTLC.connect(arbitrumWallet).deploy(amoyWallet.address, tokenamoy.getAddress(), 0); 
         amoyDeployed = await htlcamoy.deploymentTransaction().wait();
+        amoyEndTime = Date.now();
+        arbitrumStartTime = Date.now();
         htlcArbitrum = await HTLC.connect(amoyWallet).deploy(arbitrumWallet.address, tokenArbitrum.getAddress(), 1); 
         arbitrumDeployed = await htlcArbitrum.deploymentTransaction().wait();
+        arbitrumEndTime = Date.now();
     }
 
     console.log('HTLC deployed on Amoy at:', await htlcamoy.getAddress());
     console.log('HTLC deployed on Arbitrum at:', await htlcArbitrum.getAddress());
 
     let amoyGasUsedDeploy = amoyDeployed.gasUsed;
-    let arbitrumGasUsedDeploy = arbitrumDeployed.gasUsed;
+    let amoyGasPriceDeploy = amoyDeployed.gasPrice;
 
-    console.log(`amoy Gas Fee: ${ethers.formatUnits(amoyGasUsedDeploy, 'gwei')} gwei`);
-    console.log(`Arbitrum Gas Fee: ${ethers.formatUnits(arbitrumGasUsedDeploy, 'gwei')} gwei`);
+    let arbitrumGasUsedDeploy = arbitrumDeployed.gasUsed;
+    let arbitrumGasPriceDeploy = arbitrumDeployed.gasPrice;
+
+    amoyTime = (amoyEndTime - amoyStartTime);
+    arbitrumTime = (arbitrumEndTime - arbitrumStartTime);
+
+    console.log(`Amoy Gas Fee: ${ethers.formatUnits(amoyGasUsedDeploy, 'wei')} wei`);
+    console.log(`Arbitrum Gas Fee: ${ethers.formatUnits(arbitrumGasUsedDeploy, 'wei')} wei`);
+
+    console.log(`Amoy Gas Price: ${ethers.formatUnits(amoyGasPriceDeploy, 'wei')} wei`);
+    console.log(`Arbitrum Gas Price: ${ethers.formatUnits(arbitrumGasPriceDeploy, 'wei')} wei`);
+
+    console.log("HTLCAmoy deployed time:", amoyTime);
+    console.log("HTLCArbitrum deployed time:", arbitrumTime);
 
     saveGasCosts(amoyGasUsedDeploy,',');
+    saveGasCosts(amoyGasPriceDeploy,',')
+    saveGasCosts(amoyTime,',');
+    
     saveGasCosts(arbitrumGasUsedDeploy,',');
+    saveGasCosts(arbitrumGasPriceDeploy,',')
+    saveGasCosts(arbitrumTime,',');
 
     await new Promise(resolve => setTimeout(resolve, 5000));
 
     let amoyApprovalTransaction, arbitrumApprovalTransaction, amoyApprovalReceipt, arbitrumApprovalReceipt;
 
     if (flip == 0) {
+        amoyStartTime = Date.now();
         amoyApprovalTransaction = await tokenamoy.connect(amoyWallet).setApprovalForAll(await htlcamoy.getAddress(), true);
         amoyApprovalReceipt = await amoyApprovalTransaction.wait();
+        amoyEndTime = Date.now();
+        arbitrumStartTime = Date.now();
         arbitrumApprovalTransaction = await tokenArbitrum.connect(arbitrumWallet).setApprovalForAll(await htlcArbitrum.getAddress(), true);
         arbitrumApprovalReceipt = await arbitrumApprovalTransaction.wait();
+        arbitrumEndTime = Date.now();
     } else if (flip == 1) {
+        amoyStartTime = Date.now();
         amoyApprovalTransaction = await tokenamoy.connect(arbitrumWallet).setApprovalForAll(await htlcamoy.getAddress(), true);
         amoyApprovalReceipt = await amoyApprovalTransaction.wait(); 
+        amoyEndTime = Date.now();
+        arbitrumStartTime = Date.now();
         arbitrumApprovalTransaction = await tokenArbitrum.connect(amoyWallet).setApprovalForAll(await htlcArbitrum.getAddress(), true);
         arbitrumApprovalReceipt = await arbitrumApprovalTransaction.wait();
+        arbitrumEndTime = Date.now();
     }
 
     if (flip == 0){
@@ -149,40 +188,83 @@ async function main() {
         }
 
     const amoyGasUsedApprovalForAll = amoyApprovalReceipt.gasUsed;
-    const arbitrumGasUsedApprovalForAll = arbitrumApprovalReceipt.gasUsed;
+    const amoyGasPriceApprovalForAll = amoyApprovalReceipt.gasPrice;
 
-    console.log(`Amoy Gas Fee ApprovalTransaction: ${ethers.formatUnits(amoyGasUsedApprovalForAll, 'gwei')} gwei`);
-    console.log(`Arbitrum Gas Fee ApprovalTransaction: ${ethers.formatUnits(arbitrumGasUsedApprovalForAll, 'gwei')} gwei`);
+    const arbitrumGasUsedApprovalForAll = arbitrumApprovalReceipt.gasUsed;
+    const arbitrumGasPriceApprovalForAll = arbitrumApprovalReceipt.gasPrice;
+
+    amoyTime = (amoyEndTime - amoyStartTime);
+    arbitrumTime = (arbitrumEndTime - arbitrumStartTime);
+    
+
+    console.log(`Amoy Gas Fee ApprovalTransaction: ${ethers.formatUnits(amoyGasUsedApprovalForAll, 'wei')} wei`);
+    console.log(`Arbitrum Gas Fee ApprovalTransaction: ${ethers.formatUnits(arbitrumGasUsedApprovalForAll, 'wei')} wei`);
+
+    console.log(`Amoy Gas Price ApprovalTransaction: ${ethers.formatUnits(amoyGasPriceApprovalForAll, 'wei')} wei`);
+    console.log(`Arbitrum Gas Price ApprovalTransaction: ${ethers.formatUnits(arbitrumGasPriceApprovalForAll, 'wei')} wei`);
+
+    console.log("Amoy ApprovalTransaction time:", amoyTime);
+    console.log("Arbitrum ApprovalTransaction time:", arbitrumTime);
 
     saveGasCosts(amoyGasUsedApprovalForAll,',');
+    saveGasCosts(amoyGasPriceApprovalForAll,',');
+    saveGasCosts(amoyTime,',');
+
     saveGasCosts(arbitrumGasUsedApprovalForAll,',');
+    saveGasCosts(arbitrumGasPriceApprovalForAll,',');
+    saveGasCosts(arbitrumTime,',');
 
     await new Promise(resolve => setTimeout(resolve, 5000));
 
     let amoyFundTransaction, arbitrumFundTransaction, amoyFundReceipt, arbitrumFundReceipt;
 
     if (flip == 0) {
+        amoyStartTime = Date.now();
         amoyFundTransaction = await htlcamoy.connect(amoyWallet).fund();
         amoyFundReceipt = await amoyFundTransaction.wait();
+        amoyEndTime = Date.now();
+        arbitrumStartTime = Date.now();
         arbitrumFundTransaction = await htlcArbitrum.connect(arbitrumWallet).fund();
         arbitrumFundReceipt = await arbitrumFundTransaction.wait();
+        arbitrumEndTime = Date.now();
     } else if (flip == 1) {
+        amoyStartTime = Date.now();
         amoyFundTransaction = await htlcamoy.connect(arbitrumWallet).fund();
         amoyFundReceipt = await amoyFundTransaction.wait();
+        amoyEndTime = Date.now();
+        arbitrumStartTime = Date.now();
         arbitrumFundTransaction = await htlcArbitrum.connect(amoyWallet).fund();
         arbitrumFundReceipt = await arbitrumFundTransaction.wait();
+        arbitrumEndTime = Date.now();
     }
 
     console.log('NFTs funded to HTLC contracts.');
 
     const amoyGasUsedFund = amoyFundReceipt.gasUsed;
+    const amoyGasPriceFund = amoyFundReceipt.gasPrice;
+    
     const arbitrumGasUsedFund = arbitrumFundReceipt.gasUsed;
+    const arbitrumGasPriceFund = arbitrumFundReceipt.gasPrice;
 
-    console.log(`Amoy Gas Fee FundTransaction: ${ethers.formatUnits(amoyGasUsedFund, 'gwei')} gwei`);
-    console.log(`Arbitrum Gas Fee FundTransaction: ${ethers.formatUnits(arbitrumGasUsedFund, 'gwei')} gwei`);
+    amoyTime = (amoyEndTime - amoyStartTime);
+    arbitrumTime = (arbitrumEndTime - arbitrumStartTime);
+    
+    console.log(`Amoy Gas Fee FundTransaction: ${ethers.formatUnits(amoyGasUsedFund, 'wei')} wei`);
+    console.log(`Arbitrum Gas Fee FundTransaction: ${ethers.formatUnits(arbitrumGasUsedFund, 'wei')} wei`);
+    
+    console.log(`Amoy Gas Price FundTransaction: ${ethers.formatUnits(amoyGasPriceFund, 'wei')} wei`);
+    console.log(`Arbitrum Gas Price FundTransaction: ${ethers.formatUnits(arbitrumGasPriceFund, 'wei')} wei`);
 
-    saveGasCosts(amoyGasUsedFund,',');
-    saveGasCosts(arbitrumGasUsedFund,',');
+    console.log("Amoy FundTransaction time:", amoyTime);
+    console.log("Arbitrum FundTransaction time:", arbitrumTime);
+    
+    saveGasCosts(amoyGasUsedFund, ',');
+    saveGasCosts(amoyGasPriceFund,',');
+    saveGasCosts(amoyTime,',');
+
+    saveGasCosts(arbitrumGasUsedFund, ',');
+    saveGasCosts( arbitrumGasPriceFund,',');
+    saveGasCosts(arbitrumTime,',');
 
     if (flip == 0){
         await checkNFTBalance(tokenamoy, amoyWallet);
@@ -198,22 +280,47 @@ async function main() {
     const secret = 'abracadabra';
 
     if (flip == 0){
+        arbitrumStartTime = Date.now();
         arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, amoyProvider);
         await handleHTLCInteraction(htlcamoy, arbitrumWallet, secret, tokenamoy, amoyProvider);
+        arbitrumEndTime = Date.now();
+
+        arbitrumTime = (arbitrumEndTime - arbitrumStartTime);
+
+        saveGasCosts(arbitrumTime,',');
 
         await new Promise(resolve => setTimeout(resolve, 5000));
 
+        amoyStartTime = Date.now();
         amoyWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, arbitrumProvider);
         await handleHTLCInteraction(htlcArbitrum, amoyWallet, secret, tokenArbitrum, arbitrumProvider);
+        amoyEndTime = Date.now();
+
+        amoyTime = (amoyEndTime - amoyStartTime);
+
+        saveGasCosts(arbitrumTime,'');
+
     }
     else if(flip == 1){
+        amoyStartTime = Date.now();
         amoyWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, amoyProvider);
         await handleHTLCInteraction(htlcamoy, amoyWallet, secret, tokenamoy, amoyProvider);
+        amoyEndTime = Date.now();
+
+        amoyTime = (amoyEndTime - amoyStartTime);
+
+        saveGasCosts(arbitrumTime,',');
 
         await new Promise(resolve => setTimeout(resolve, 5000));
 
+        arbitrumStartTime = Date.now();
         arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, arbitrumProvider);
         await handleHTLCInteraction(htlcArbitrum, arbitrumWallet, secret, tokenArbitrum, arbitrumProvider);
+        arbitrumEndTime = Date.now();
+
+        arbitrumTime = (arbitrumEndTime - arbitrumStartTime);
+
+        saveGasCosts(arbitrumTime,'');
     }
 }
 
