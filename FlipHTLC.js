@@ -13,9 +13,16 @@ async function main() {
 
     const quebra = `\n`;
 
+    const nowDate = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ',')
+
     fs.appendFileSync('custosHTLC.txt', quebra, (err) => {
         if (err) throw err;
     });
+
+    fs.appendFileSync('custosHTLC.txt', nowDate, (err) => {
+        if (err) throw err;
+    });
+
 
     // Função para registrar os custos de gás no arquivo
     function saveGasCosts(gasUsed, virgula) {
