@@ -34,19 +34,17 @@ async function main() {
     htlcArbitrum = await HTLC.connect(arbitrumWallet).deploy(amoyWallet.address, tokenArbitrum.getAddress(), amount);
     console.log("HTLC deployado em Arbitrum:", await htlcArbitrum.getAddress());
 
-    await new Promise(resolve => setTimeout(resolve, 10000));
 
+    //Faz o aprove
     await tokenAmoy.connect(amoyWallet).approve(htlcAmoy.getAddress(), amount);
-
     console.log("HTLC Aprovado na Amoy");
 
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     await tokenArbitrum.connect(arbitrumWallet).approve(htlcArbitrum.getAddress(), amount);
-
     console.log("HTLC Aprovado na Arbitrum");
 
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Interações com o HTLC
     await htlcAmoy.connect(amoyWallet).fund();
@@ -55,22 +53,12 @@ async function main() {
     console.log("Tokens depositados nos contratos HTLC");
 
     // Interação de retirada
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     await htlcAmoy.connect(arbitrumWallet).withdraw(secret);
     await htlcArbitrum.connect(amoyWallet).withdraw(secret);
 
     console.log("Tokens retirados dos contratos HTLC");
-
-    // Interação de reembolso (se necessário)
-    const currentTime = Math.floor(Date.now() / 1000);
-    if (currentTime > (await htlcAmoy.startTime()).toNumber() + (await htlcAmoy.lockTime()).toNumber()) {
-        await htlcAmoy.connect(amoyWallet).refund();
-        console.log("Tokens reembolsados para o dono em Amoy");
-    }
-
-    if (currentTime > (await htlcArbitrum.startTime()).toNumber() + (await htlcArbitrum.lockTime()).toNumber()) {
-        await htlcArbitrum.connect(arbitrumWallet).refund();
-        console.log("Tokens reembolsados para o dono em Arbitrum");
-    }
 }
 
 main().catch((error) => {
