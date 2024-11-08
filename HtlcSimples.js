@@ -19,11 +19,11 @@ async function main() {
     arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, arbitrumProvider);
 
     // Contratos ERC-20 (endereços são exemplos)
-    tokenAmoy = await ethers.getContractAt("Token", "0x82de6D156D64444656E40Bbbba4086A06d53aC58", amoyWallet);
-    tokenArbitrum = await ethers.getContractAt("Token", "0x7204F76d2CEC11785346eeF6fe0796bf303B5F53", arbitrumWallet);
+    tokenAmoy = await ethers.getContractAt("Token", "0x0c4006414168cd3e3bA8e33E0cDD3A1F695737Bd", amoyWallet);
+    tokenArbitrum = await ethers.getContractAt("Token", "0xBE5B3e20B0b168af42c43cA529d7952AF74f0E67", arbitrumWallet);
 
     // Aprovar o HTLC para transferir tokens no valor especificado
-    const amount = ethers.parseUnits("10", 18); // 10 tokens
+    const amount = '1';
 
     // Deploy do contrato HTLC para ambas as redes
     const HTLC = await ethers.getContractFactory("HTLC");
@@ -33,6 +33,20 @@ async function main() {
 
     htlcArbitrum = await HTLC.connect(arbitrumWallet).deploy(amoyWallet.address, tokenArbitrum.getAddress(), amount);
     console.log("HTLC deployado em Arbitrum:", await htlcArbitrum.getAddress());
+
+    await new Promise(resolve => setTimeout(resolve, 10000));
+
+    await tokenAmoy.connect(amoyWallet).approve(htlcAmoy.getAddress(), amount);
+
+    console.log("HTLC Aprovado na Amoy");
+
+    await new Promise(resolve => setTimeout(resolve, 10000));
+
+    await tokenArbitrum.connect(arbitrumWallet).approve(htlcArbitrum.getAddress(), amount);
+
+    console.log("HTLC Aprovado na Arbitrum");
+
+    await new Promise(resolve => setTimeout(resolve, 10000));
 
     // Interações com o HTLC
     await htlcAmoy.connect(amoyWallet).fund();
