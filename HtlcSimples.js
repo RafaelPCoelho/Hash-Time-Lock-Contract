@@ -1,10 +1,36 @@
 require('dotenv').config();
 const { ethers } = require("hardhat");
+const fs = require('fs');
+
+const quebra = `\n`;
+
+const nowDate = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ',')
+
+fs.appendFileSync('custosHTLC20.txt', quebra, (err) => {
+    if (err) throw err;
+});
+
+fs.appendFileSync('custosHTLC20.txt', nowDate, (err) => {
+    if (err) throw err;
+});
+
+function saveGasCosts(x) {
+    const data = `${ethers.formatUnits(x, 'wei')},`;
+    fs.appendFileSync('custosHTLC20.txt', data, (err) => {
+        if (err) throw err;
+    });
+}
 
 async function main() {
     let amoyWallet, arbitrumWallet;
     let tokenAmoy, tokenArbitrum;
     let htlcAmoy, htlcArbitrum;
+    let amoyDeployed, arbitrumDeployed;
+    let amoyStartTime, amoyEndTime, amoyTime;
+    let arbitrumStartTime, arbitrumEndTime, arbitrumTime;
+    let amoyApprovalTransaction, arbitrumApprovalTransaction, amoyApprovalReceipt, arbitrumApprovalReceipt;
+    let amoyFundTransaction, arbitrumFundTransaction, amoyFundReceipt, arbitrumFundReceipt;
+    let amoyWithdrawTransaction, arbitrumWithdrawTransaction, amoyWithdrawReceipt, arbitrumWithdrawReceipt;
 
     const secret = "abracadabra";
 
@@ -28,27 +54,93 @@ async function main() {
     // Deploy do contrato HTLC para ambas as redes
     const HTLC = await ethers.getContractFactory("HTLC");
 
+    amoyStartTime = Date.now();
     htlcAmoy = await HTLC.connect(amoyWallet).deploy(arbitrumWallet.address, tokenAmoy.getAddress(), amount);
+    amoyDeployed = await htlcAmoy.deploymentTransaction().wait();
+    amoyEndTime = Date.now();
     console.log("HTLC deployado em Amoy:", await htlcAmoy.getAddress());
 
+    arbitrumStartTime = Date.now();
     htlcArbitrum = await HTLC.connect(arbitrumWallet).deploy(amoyWallet.address, tokenArbitrum.getAddress(), amount);
+    arbitrumDeployed = await htlcArbitrum.deploymentTransaction().wait();
+    arbitrumEndTime = Date.now();
     console.log("HTLC deployado em Arbitrum:", await htlcArbitrum.getAddress());
 
+    let amoyGasUsedDeploy = amoyDeployed.gasUsed;
+    let amoyGasPriceDeploy = amoyDeployed.gasPrice;
+
+    let arbitrumGasUsedDeploy = arbitrumDeployed.gasUsed;
+    let arbitrumGasPriceDeploy = arbitrumDeployed.gasPrice;
+
+    amoyTime = (amoyEndTime - amoyStartTime);
+    arbitrumTime = (arbitrumEndTime - arbitrumStartTime);
+
+
+    console.log(`Amoy Gas Fee: ${ethers.formatUnits(amoyGasUsedDeploy,'wei')} wei`);
+    console.log(`Arbitrum Gas Fee: ${ethers.formatUnits(arbitrumGasUsedDeploy, 'wei')} wei`);
+
+    console.log(`Amoy Gas Price: ${ethers.formatUnits(amoyGasPriceDeploy, 'wei')} wei`);
+    console.log(`Arbitrum Gas Price: ${ethers.formatUnits(arbitrumGasPriceDeploy, 'wei')} wei`);
+
+    console.log("HTLCAmoy deployed time:", amoyTime);
+    console.log("HTLCArbitrum deployed time:", arbitrumTime);
+
+    saveGasCosts(amoyGasUsedDeploy);
+    saveGasCosts(amoyGasPriceDeploy)
+    saveGasCosts(amoyTime);
+    
+    saveGasCosts(arbitrumGasUsedDeploy);
+    saveGasCosts(arbitrumGasPriceDeploy)
+    saveGasCosts(arbitrumTime);
 
     //Faz o aprove
-    await tokenAmoy.connect(amoyWallet).approve(htlcAmoy.getAddress(), amount);
+    amoyStartTime = Date.now();
+    amoyApprovalTransaction = await tokenAmoy.connect(amoyWallet).approve(htlcAmoy.getAddress(), amount);
+    amoyApprovalReceipt = await amoyApprovalTransaction.wait();
+    amoyEndTime = Date.now();
     console.log("HTLC Aprovado na Amoy");
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    await tokenArbitrum.connect(arbitrumWallet).approve(htlcArbitrum.getAddress(), amount);
+    arbitrumStartTime = Date.now();
+    arbitrumApprovalTransaction = await tokenArbitrum.connect(arbitrumWallet).approve(htlcArbitrum.getAddress(), amount);
+    arbitrumApprovalReceipt = await arbitrumApprovalTransaction.wait();
+    arbitrumEndTime = Date.now();
     console.log("HTLC Aprovado na Arbitrum");
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const amoyGasUsedApprovalForAll = amoyApprovalReceipt.gasUsed;
+    const amoyGasPriceApprovalForAll = amoyApprovalReceipt.gasPrice;
+
+    const arbitrumGasUsedApprovalForAll = arbitrumApprovalReceipt.gasUsed;
+    const arbitrumGasPriceApprovalForAll = arbitrumApprovalReceipt.gasPrice;
+
+    amoyTime = (amoyEndTime - amoyStartTime);
+    arbitrumTime = (arbitrumEndTime - arbitrumStartTime);
+
+    console.log(`Amoy Gas Fee ApprovalTransaction: ${ethers.formatUnits(amoyGasUsedApprovalForAll, 'wei')} wei`);
+    console.log(`Arbitrum Gas Fee ApprovalTransaction: ${ethers.formatUnits(arbitrumGasUsedApprovalForAll, 'wei')} wei`);
+
+    console.log(`Amoy Gas Price ApprovalTransaction: ${ethers.formatUnits(amoyGasPriceApprovalForAll, 'wei')} wei`);
+    console.log(`Arbitrum Gas Price ApprovalTransaction: ${ethers.formatUnits(arbitrumGasPriceApprovalForAll, 'wei')} wei`);
+
+    console.log("Amoy ApprovalTransaction time:", amoyTime);
+    console.log("Arbitrum ApprovalTransaction time:", arbitrumTime);
+
+    saveGasCosts(amoyGasUsedApprovalForAll);
+    saveGasCosts(amoyGasPriceApprovalForAll);
+    saveGasCosts(amoyTime);
+
+    saveGasCosts(arbitrumGasUsedApprovalForAll);
+    saveGasCosts(arbitrumGasPriceApprovalForAll);
+    saveGasCosts(arbitrumTime);
 
     // Interações com o HTLC
-    await htlcAmoy.connect(amoyWallet).fund();
-    await htlcArbitrum.connect(arbitrumWallet).fund();
+    amoyStartTime = Date.now();
+    amoyFundTransaction = await htlcAmoy.connect(amoyWallet).fund();
+    amoyFundReceipt = await amoyFundTransaction.wait();
+    amoyEndTime = Date.now();
+    arbitrumStartTime = Date.now();
+    arbitrumFundTransaction = await htlcArbitrum.connect(arbitrumWallet).fund();
+    arbitrumFundReceipt = await arbitrumFundTransaction.wait();
+    arbitrumEndTime = Date.now();
 
     console.log("Tokens depositados nos contratos HTLC");
 
@@ -56,11 +148,69 @@ async function main() {
     console.log(`Saldo conta 1: ${await tokenAmoy.balanceOf(amoyWallet.address)}`);
     console.log(`Saldo conta 2: ${await tokenArbitrum.balanceOf(arbitrumWallet.address)}`);
 
+    const amoyGasUsedFund = amoyFundReceipt.gasUsed;
+    const amoyGasPriceFund = amoyFundReceipt.gasPrice;
+    
+    const arbitrumGasUsedFund = arbitrumFundReceipt.gasUsed;
+    const arbitrumGasPriceFund = arbitrumFundReceipt.gasPrice;
+
+    amoyTime = (amoyEndTime - amoyStartTime);
+    arbitrumTime = (arbitrumEndTime - arbitrumStartTime);
+
+    console.log(`Amoy Gas Fee FundTransaction: ${ethers.formatUnits(amoyGasUsedFund, 'wei')} wei`);
+    console.log(`Arbitrum Gas Fee FundTransaction: ${ethers.formatUnits(arbitrumGasUsedFund, 'wei')} wei`);
+    
+    console.log(`Amoy Gas Price FundTransaction: ${ethers.formatUnits(amoyGasPriceFund, 'wei')} wei`);
+    console.log(`Arbitrum Gas Price FundTransaction: ${ethers.formatUnits(arbitrumGasPriceFund, 'wei')} wei`);
+
+    console.log("Amoy FundTransaction time:", amoyTime);
+    console.log("Arbitrum FundTransaction time:", arbitrumTime);
+    
+    saveGasCosts(amoyGasUsedFund);  
+    saveGasCosts(amoyGasPriceFund);
+    saveGasCosts(amoyTime);
+
+    saveGasCosts(arbitrumGasUsedFund);
+    saveGasCosts( arbitrumGasPriceFund);
+    saveGasCosts(arbitrumTime);
+
     // Interação de retirada
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    await htlcAmoy.withdraw("abracadabra");
-    await htlcArbitrum.withdraw("abracadabra");
+    amoyStartTime = Date.now();
+    amoyWithdrawTransaction = await htlcAmoy.withdraw("abracadabra");
+    amoyWithdrawReceipt = await amoyWithdrawTransaction.wait();
+    amoyEndTime = Date.now();
+    arbitrumStartTime = Date.now();
+    arbitrumWithdrawTransaction = await htlcArbitrum.withdraw("abracadabra");
+    arbitrumWithdrawReceipt = await arbitrumWithdrawTransaction.wait();
+    arbitrumEndTime = Date.now();
+
+    const amoyGasUsedWithdraw = amoyWithdrawReceipt.gasUsed;
+    const amoyGasPriceWithdraw = amoyWithdrawReceipt.gasPrice;
+    
+    const arbitrumGasUsedWithdraw = arbitrumWithdrawReceipt.gasUsed;
+    const arbitrumGasPriceWithdraw = arbitrumWithdrawReceipt.gasPrice;
+
+    amoyTime = (amoyEndTime - amoyStartTime);
+    arbitrumTime = (arbitrumEndTime - arbitrumStartTime);
+
+    console.log(`Amoy Gas Fee: ${ethers.formatUnits(amoyGasUsedWithdraw, 'wei')} wei`);
+    console.log(`Arbitrum Gas Fee: ${ethers.formatUnits(arbitrumGasUsedWithdraw, 'wei')} wei`);
+
+    console.log(`Amoy Gas Price: ${ethers.formatUnits(amoyGasPriceWithdraw, 'wei')} wei`);
+    console.log(`Arbitrum Gas Price: ${ethers.formatUnits(arbitrumGasPriceWithdraw, 'wei')} wei`);
+
+    console.log("HTLCAmoy withdraw time:", amoyTime);
+    console.log("HTLCArbitrum withdraw time:", arbitrumTime);
+
+    saveGasCosts(amoyGasUsedWithdraw);
+    saveGasCosts(amoyGasPriceWithdraw)
+    saveGasCosts(amoyTime);
+    
+    saveGasCosts(arbitrumGasUsedWithdraw);
+    saveGasCosts(arbitrumGasPriceWithdraw)
+    saveGasCosts(arbitrumTime);
 
     await new Promise(resolve => setTimeout(resolve, 3000));
 
