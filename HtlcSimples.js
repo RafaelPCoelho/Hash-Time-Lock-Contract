@@ -19,8 +19,8 @@ async function main() {
     arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, arbitrumProvider);
 
     // Contratos ERC-20 (endereços são exemplos)
-    tokenAmoy = await ethers.getContractAt("Token", "0x0c4006414168cd3e3bA8e33E0cDD3A1F695737Bd", amoyWallet);
-    tokenArbitrum = await ethers.getContractAt("Token", "0xBE5B3e20B0b168af42c43cA529d7952AF74f0E67", arbitrumWallet);
+    tokenAmoy = await ethers.getContractAt("Token", "0x1cca9dfc882718715e83d66449be8DBA8714D3f1", amoyWallet);
+    tokenArbitrum = await ethers.getContractAt("Token", "0xA1439C9BBC2d890Dc4e7847f671107A607170771", arbitrumWallet);
 
     // Aprovar o HTLC para transferir tokens no valor especificado
     const amount = '1';
@@ -52,13 +52,28 @@ async function main() {
 
     console.log("Tokens depositados nos contratos HTLC");
 
+    console.log("Verificação dos fund:");
+    console.log(`Saldo conta 1: ${await tokenAmoy.balanceOf(amoyWallet.address)}`);
+    console.log(`Saldo conta 2: ${await tokenArbitrum.balanceOf(arbitrumWallet.address)}`);
+
     // Interação de retirada
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    await htlcAmoy.connect(arbitrumWallet).withdraw(secret);
-    await htlcArbitrum.connect(amoyWallet).withdraw(secret);
+    await htlcAmoy.withdraw("abracadabra");
+    await htlcArbitrum.withdraw("abracadabra");
+
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     console.log("Tokens retirados dos contratos HTLC");
+
+    console.log("Verificação dos witdraw:");
+
+    console.log(`Saldo do HTLC zerado na Amoy: ${await tokenAmoy.balanceOf(htlcAmoy.getAddress())}`);
+    console.log(`Saldo do HTLC zerado na Arbitrum: ${await tokenArbitrum.balanceOf(htlcArbitrum.getAddress())}`);
+    console.log(`---------------------------------`);
+    console.log(`Saldo conta 2 recebido do token 1: ${await tokenAmoy.balanceOf(arbitrumWallet.address)}`);
+    console.log(`Saldo conta 1 recebido do token 2: ${await tokenArbitrum.balanceOf(amoyWallet.address)}`);
+
 }
 
 main().catch((error) => {
