@@ -4,6 +4,8 @@ const fs = require('fs');
 
 const quebra = `\n`;
 
+const virgula = ',';
+
 const nowDate = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ',')
 
 fs.appendFileSync('custosHTLC20.txt', quebra, (err) => {
@@ -14,8 +16,8 @@ fs.appendFileSync('custosHTLC20.txt', nowDate, (err) => {
     if (err) throw err;
 });
 
-function saveGasCosts(x) {
-    const data = `${ethers.formatUnits(x, 'wei')},`;
+function saveGasCosts(x,espacamento) {
+    const data = `${ethers.formatUnits(x, 'wei')}${espacamento}`;
     fs.appendFileSync('custosHTLC20.txt', data, (err) => {
         if (err) throw err;
     });
@@ -85,13 +87,13 @@ async function main() {
     console.log("HTLCAmoy deployed time:", amoyTime);
     console.log("HTLCArbitrum deployed time:", arbitrumTime);
 
-    saveGasCosts(amoyGasUsedDeploy);
-    saveGasCosts(amoyGasPriceDeploy)
-    saveGasCosts(amoyTime);
+    saveGasCosts(amoyGasUsedDeploy,virgula);
+    saveGasCosts(amoyGasPriceDeploy,virgula);
+    saveGasCosts(amoyTime,virgula);
     
-    saveGasCosts(arbitrumGasUsedDeploy);
-    saveGasCosts(arbitrumGasPriceDeploy)
-    saveGasCosts(arbitrumTime);
+    saveGasCosts(arbitrumGasUsedDeploy,virgula);
+    saveGasCosts(arbitrumGasPriceDeploy,virgula);
+    saveGasCosts(arbitrumTime,virgula);
 
     //Faz o aprove
     amoyStartTime = Date.now();
@@ -124,13 +126,13 @@ async function main() {
     console.log("Amoy ApprovalTransaction time:", amoyTime);
     console.log("Arbitrum ApprovalTransaction time:", arbitrumTime);
 
-    saveGasCosts(amoyGasUsedApprovalForAll);
-    saveGasCosts(amoyGasPriceApprovalForAll);
-    saveGasCosts(amoyTime);
+    saveGasCosts(amoyGasUsedApprovalForAll, virgula);
+    saveGasCosts(amoyGasPriceApprovalForAll, virgula);
+    saveGasCosts(amoyTime, virgula);
 
-    saveGasCosts(arbitrumGasUsedApprovalForAll);
-    saveGasCosts(arbitrumGasPriceApprovalForAll);
-    saveGasCosts(arbitrumTime);
+    saveGasCosts(arbitrumGasUsedApprovalForAll, virgula);
+    saveGasCosts(arbitrumGasPriceApprovalForAll, virgula);
+    saveGasCosts(arbitrumTime, virgula);
 
     // Interações com o HTLC
     amoyStartTime = Date.now();
@@ -166,13 +168,13 @@ async function main() {
     console.log("Amoy FundTransaction time:", amoyTime);
     console.log("Arbitrum FundTransaction time:", arbitrumTime);
     
-    saveGasCosts(amoyGasUsedFund);  
-    saveGasCosts(amoyGasPriceFund);
-    saveGasCosts(amoyTime);
+    saveGasCosts(amoyGasUsedFund, virgula);  
+    saveGasCosts(amoyGasPriceFund, virgula);
+    saveGasCosts(amoyTime, virgula);
 
-    saveGasCosts(arbitrumGasUsedFund);
-    saveGasCosts( arbitrumGasPriceFund);
-    saveGasCosts(arbitrumTime);
+    saveGasCosts(arbitrumGasUsedFund, virgula);
+    saveGasCosts( arbitrumGasPriceFund, virgula);
+    saveGasCosts(arbitrumTime, virgula);
 
     // Interação de retirada
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -204,13 +206,13 @@ async function main() {
     console.log("HTLCAmoy withdraw time:", amoyTime);
     console.log("HTLCArbitrum withdraw time:", arbitrumTime);
 
-    saveGasCosts(amoyGasUsedWithdraw);
-    saveGasCosts(amoyGasPriceWithdraw)
-    saveGasCosts(amoyTime);
+    saveGasCosts(amoyGasUsedWithdraw, virgula);
+    saveGasCosts(amoyGasPriceWithdraw, virgula);
+    saveGasCosts(amoyTime, virgula);
     
-    saveGasCosts(arbitrumGasUsedWithdraw);
-    saveGasCosts(arbitrumGasPriceWithdraw)
-    saveGasCosts(arbitrumTime);
+    saveGasCosts(arbitrumGasUsedWithdraw, virgula);
+    saveGasCosts(arbitrumGasPriceWithdraw, virgula);
+    saveGasCosts(arbitrumTime,"");
 
     await new Promise(resolve => setTimeout(resolve, 3000));
 
