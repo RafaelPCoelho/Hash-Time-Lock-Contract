@@ -49,7 +49,7 @@ async function main() {
 
   /// DESCOMENTE PARA COLOCAR ETH NAS CARTEIRAS VIA GANACHE
 /* 
-  const value = ethers.parseEther("40");
+  const value = ethers.parseEther("20");
 
   // Função para enviar ETH
   async function sendEther(wallet, to, value) {
@@ -90,7 +90,8 @@ async function main() {
   balanceArbitrum2 = await arbitrumProvider.getBalance(walletArbitrum2.address);
 
   console.log(`Arbitrum wallet1 balance after transfer: ${ethers.formatEther(balanceArbitrum)} ETH`);
-  console.log(`Arbitrum wallet2 balance after transfer: ${ethers.formatEther(balanceArbitrum2)} ETH`); */
+  console.log(`Arbitrum wallet2 balance after transfer: ${ethers.formatEther(balanceArbitrum2)} ETH`); 
+   */
 }
 
 main()

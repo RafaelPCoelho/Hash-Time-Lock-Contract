@@ -4,13 +4,13 @@ const { ethers } = require("hardhat");
 async function deployAndMintTokens() {
 
     // Configuração para Amoy
-    //const amoyProvider = new ethers.AlchemyProvider(`${process.env.ALCHEMY_API_KEY}`);
-    const amoyProvider = new ethers.JsonRpcProvider(`HTTP://127.0.0.1:7555`);
+    const amoyProvider = new ethers.JsonRpcProvider(`https://polygon-amoy.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`);
+    //const amoyProvider = new ethers.JsonRpcProvider(`HTTP://127.0.0.1:7555`);
     const amoyWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1, amoyProvider);
 
     // Configuração para Arbitrum
-    //const arbitrumProvider = new ethers.AlchemyProvider(`${process.env.ALCHEMY_API_KEY}`);
-    const arbitrumProvider = new ethers.JsonRpcProvider(`HTTP://127.0.0.1:7545`);
+    const arbitrumProvider = new ethers.JsonRpcProvider(`https://avax-fuji.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`);
+    //const arbitrumProvider = new ethers.JsonRpcProvider(`HTTP://127.0.0.1:7545`);
     const arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, arbitrumProvider);
 
     // Deploy do contrato ERC-20 em Amoy

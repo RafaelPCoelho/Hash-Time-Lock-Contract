@@ -37,18 +37,18 @@ async function main() {
     const secret = "abracadabra";
 
     // Configuração para Amoy
-    //const amoyProvider = new ethers.AlchemyProvider(`${process.env.ALCHEMY_API_KEY}`);
-    const amoyProvider = new ethers.JsonRpcProvider(`HTTP://127.0.0.1:7555`);
+    const amoyProvider = new ethers.JsonRpcProvider(`https://polygon-amoy.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`);
+    //const amoyProvider = new ethers.JsonRpcProvider(`HTTP://127.0.0.1:7555`);
     amoyWallet = new ethers.Wallet(process.env.PRIVATE_KEY_1,amoyProvider);
 
     // Configuração para Arbitrum
-    //const arbitrumProvider = new ethers.AlchemyProvider(`${process.env.ALCHEMY_API_KEY}`);
-    const arbitrumProvider = new ethers.JsonRpcProvider(`HTTP://127.0.0.1:7545`);
+    const arbitrumProvider = new ethers.JsonRpcProvider(`https://avax-fuji.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`);
+    //const arbitrumProvider = new ethers.JsonRpcProvider(`HTTP://127.0.0.1:7545`);
     arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, arbitrumProvider);
 
     // Contratos ERC-20 (endereços são exemplos)
-    tokenAmoy = await ethers.getContractAt("Token", "0x1cca9dfc882718715e83d66449be8DBA8714D3f1", amoyWallet);
-    tokenArbitrum = await ethers.getContractAt("Token", "0xA1439C9BBC2d890Dc4e7847f671107A607170771", arbitrumWallet);
+    tokenAmoy = await ethers.getContractAt("Token", "0xda875d7DF75EB0B664E5F64B8876B74B7F81CC23", amoyWallet);
+    tokenArbitrum = await ethers.getContractAt("Token", "0x58EBd3F466d2bDec3D44614762BC1E199c1B9385", arbitrumWallet);
 
     // Aprovar o HTLC para transferir tokens no valor especificado
     const amount = '1';
@@ -177,7 +177,7 @@ async function main() {
     saveGasCosts(arbitrumTime, virgula);
 
     // Interação de retirada
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     amoyStartTime = Date.now();
     amoyWithdrawTransaction = await htlcAmoy.withdraw("abracadabra");
