@@ -47,8 +47,8 @@ async function main() {
     arbitrumWallet = new ethers.Wallet(process.env.PRIVATE_KEY_2, arbitrumProvider);
 
     // Contratos ERC-20 (endereços são exemplos)
-    tokenAmoy = await ethers.getContractAt("Token", "0xda875d7DF75EB0B664E5F64B8876B74B7F81CC23", amoyWallet);
-    tokenArbitrum = await ethers.getContractAt("Token", "0x58EBd3F466d2bDec3D44614762BC1E199c1B9385", arbitrumWallet);
+    tokenAmoy = await ethers.getContractAt("Token", "0xaE7f1262F01B4841B43aF2934f2D14300DF48684", amoyWallet);
+    tokenArbitrum = await ethers.getContractAt("Token", "0x51620F5E7A9256a57Ca0cC6de930984B04d9955C", arbitrumWallet);
 
     // Aprovar o HTLC para transferir tokens no valor especificado
     const amount = '1';
